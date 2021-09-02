@@ -1,0 +1,38 @@
+import os			    # Magick e Tessaract
+import time			  # epoch time
+import calendar 	# epoch time
+import cv2 #leitura de imagens
+import pytesseract #AI
+from PyPDF2 import PdfFileMerger
+
+dir_files = [f for f in os.listdir(".") if os.path.isfile(os.path.join(".", f))]
+epoch_time = int(calendar.timegm(time.gmtime()))
+print(dir_files)
+
+for file in dir_files: # Olha todos os arquivos na pasta
+	if file.endswith('.pdf'): # Se for PDF vai utilizar esse
+		print('Convertendo: ' + file)
+		# setup
+		file = file.replace('.pdf', '') # Tirar a extensão
+		folder = str(int(epoch_time)) + '_' + file # Criar uma pasta temporaria com a imagem
+		combined = folder + '/' + file # Pasta temporaria de export
+		# Criar pasta
+		if not os.path.exists(folder): # faz a pasta temporaria
+			os.makedirs(folder)
+		# converte pdf para png
+		magick = 'convert -density 150 "' + file + '.pdf" "' + combined + '-%04d.png"'
+		print(magick)
+		os.system(magick)
+		# conversão de png para OCR PDF
+		pngs = [f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
+		for pic in pngs:
+			if pic.endswith('.png'):
+				combined_pic = folder + '/' + pic
+				print(combined_pic)
+				img=cv2.imread(combined_pic)
+				pytesseract.pytesseract.tesseract_cmd="C:\Program Files\Tesseract-OCR\Tesseract.exe"
+				texto=(pytesseract.image_to_string(img, lang='por'))
+print(texto)
+nometxt=(folder+'.txt')
+with open(nometxt,'w',encoding='utf-8') as arq:
+    arq.write(texto)
